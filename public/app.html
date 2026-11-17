@@ -304,7 +304,7 @@ function renderAcct(){
   const a=document.getElementById("acct"); if(!a)return;
   if(!sync.user){a.innerHTML='<a class="ghost sm" href="/signin">Sign in</a>';return;}
   const u=sync.user;
-  a.innerHTML=`<a class="ghost sm" href="/history" title="Your history">${u.image?`<img src="${u.image}" alt="">`:""}<span class="who">${u.name||u.email}</span>History<span class="sync${sync._busy?" busy":""}"></span></a><a class="ghost sm" href="/api/auth/signout?callbackUrl=/" title="Sign out">↪</a>`;
+  a.innerHTML=`<a class="ghost sm" href="/history" title="Your history">${u.image?`<img src="${u.image}" alt="">`:""}<span class="who">${u.name||u.email}</span>History<span class="sync${sync._busy?" busy":""}"></span></a><form method="post" action="/signout" style="display:contents"><button class="ghost sm" type="submit" title="Sign out">↪</button></form>`;
 }
 let mode="speak",topics=[],used=new Set(),history=[],spinning=false,sound=true,lastTopic=null,diff="All";
 
