@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { getState, saveState } from "@/lib/db";
 import { NextResponse } from "next/server";
 
-const ALLOWED = /^(list|used|hist|day):[a-z]+$/;
+const ALLOWED = /^(list|used|hist|day|got):[a-z]+$/;
 
 export async function GET() {
   const session = await auth();
