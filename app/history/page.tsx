@@ -10,6 +10,7 @@ const MODE: Record<string, { label: string; icon: string; color: string }> = {
   dsa: { label: "DSA", icon: "🧩", color: "#ff6b6b" },
   design: { label: "Design", icon: "🏗️", color: "#5cc8ff" },
   challenge: { label: "Challenge", icon: "🔥", color: "#ff9f43" },
+  interview: { label: "Interview", icon: "💼", color: "#f472b6" },
 };
 
 function fmtDate(d: string) {

@@ -1,6 +1,6 @@
 # Topic Roulette
 
-A slot-reel random picker for daily practice — speak, code, learn, DSA, design, challenge.
+A slot-reel random picker for daily practice — speak, code, learn, DSA, design, challenge, interview.
 Live at [topicwheel.vercel.app](https://topicwheel.vercel.app).
 
 Next.js (App Router) serving a vanilla HTML app, Auth.js Google sign-in, Neon Postgres for synced state.
