@@ -48,9 +48,16 @@
 
   /* mode picker: the title is the button, the menu drops below it */
   .picker{position:relative;z-index:6;flex-shrink:0}
-  #modeBtn{font:inherit;color:inherit;letter-spacing:inherit;background:none;border:0;cursor:pointer;display:inline-flex;align-items:center;gap:.2em;padding:0}
-  .caret{font-size:.55em;color:var(--accent);opacity:.75;transition:transform .2s,opacity .2s}
-  #modeBtn:hover .caret,#modeBtn:focus-visible .caret{opacity:1}
+  #modeBtn{font:inherit;color:inherit;letter-spacing:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:.3em;padding:.16em .2em .16em .45em;border-radius:999px;
+    background:rgba(var(--accent-rgb),.08);border:1px solid rgba(var(--accent-rgb),.35);box-shadow:0 8px 30px rgba(0,0,0,.35);transition:background .2s,border-color .2s}
+  #modeBtn:hover,#modeBtn:focus-visible,.picker.open #modeBtn{background:rgba(var(--accent-rgb),.16);border-color:rgba(var(--accent-rgb),.7);outline:none}
+  #modeIcon{font-size:.7em}
+  .picker h1{margin-bottom:10px;display:flex;justify-content:center;align-items:center;gap:.25em}
+  .dice{font-size:.6em;width:1.9em;height:1.9em;flex-shrink:0;border-radius:50%;cursor:pointer;background:var(--panel);border:1px solid var(--line);display:grid;place-items:center;padding:0;transition:border-color .2s}
+  .dice:hover,.dice:focus-visible{border-color:rgba(var(--accent-rgb),.7);outline:none}
+  .dice.rolling{animation:roll .45s linear infinite}
+  @keyframes roll{to{transform:rotate(360deg)}}
+  .caret{font-size:.4em;width:1.9em;height:1.9em;display:inline-grid;place-items:center;border-radius:50%;background:rgba(var(--accent-rgb),.18);color:var(--accent);transition:transform .2s}
   .picker.open .caret{transform:rotate(180deg)}
   .modes{display:none;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;flex-direction:column;gap:2px;padding:6px;min-width:210px;border-radius:14px;background:var(--panel);border:1px solid var(--line);box-shadow:0 24px 60px rgba(0,0,0,.65)}
   .picker.open .modes{display:flex}
@@ -108,8 +115,8 @@
   :fullscreen .hint,:fullscreen .brand{display:none}
 
   /* recording mode: only title, day, reel */
-  body.rec #modeBtn{pointer-events:none}
-  body.rec .caret,body.rec .modes,body.rec .controls,body.rec .hint,body.rec .history,body.rec .brand,body.rec .filters,body.rec .sub{display:none!important}
+  body.rec #modeBtn{pointer-events:none;background:none;border-color:transparent;box-shadow:none}
+  body.rec #modeIcon,body.rec .dice,body.rec .caret,body.rec .modes,body.rec .controls,body.rec .hint,body.rec .history,body.rec .brand,body.rec .filters,body.rec .sub{display:none!important}
   body.rec{padding-top:40px}
   body.rec .stat b{font-size:48px}
   body.rec h1{font-size:clamp(36px,5vw,64px);margin-bottom:22px}
@@ -197,7 +204,7 @@
 <div class="recbadge" id="recBadge" title="Click to exit recording mode">REC · click to exit</div>
 
 <div class="picker" id="picker">
-  <h1><button id="modeBtn" title="Change mode (1–7)" aria-haspopup="menu" aria-expanded="false"><span id="title">Speak</span><span class="caret">▾</span></button></h1>
+  <h1><button id="modeBtn" title="Change mode (1–7)" aria-haspopup="menu" aria-expanded="false"><span id="modeIcon">🎤</span><span id="title">Speak</span><span class="caret">▾</span></button><button class="dice" id="diceBtn" title="Spin for a random mode (M)" aria-label="Spin for a random mode">🎲</button></h1>
   <div class="modes" id="modes" role="menu"></div>
 </div>
 <div class="sub" id="subtitle"></div>
@@ -220,7 +227,7 @@
     <button class="ghost" id="fsBtn" title="Fullscreen">⛶</button>
   </div>
   <div class="history" id="history"></div>
-  <div class="hint"><kbd>Space</kbd> spin · <kbd>Enter</kbd> timer · <kbd>D</kbd> done <kbd>S</kbd> skip · <kbd>1</kbd>–<kbd>7</kbd> mode · <kbd>R</kbd> rec · <kbd>F</kbd> fullscreen</div>
+  <div class="hint"><kbd>Space</kbd> spin · <kbd>Enter</kbd> timer · <kbd>D</kbd> done <kbd>S</kbd> skip · <kbd>1</kbd>–<kbd>7</kbd> mode · <kbd>M</kbd> random mode · <kbd>R</kbd> rec · <kbd>F</kbd> fullscreen</div>
 </div>
 
 <div class="count" id="count"><b id="countNum">3</b></div>
@@ -332,12 +339,30 @@ function loadMode(m){
   if(open>got){const add=POOL[m].slice(got,open).filter(t=>!topics.includes(t));topics=[...topics,...add];store.set("list:"+m,topics);store.set("got:"+m,open);
     if(add.length)setTimeout(()=>toast(`${add.length} new ${M.label} topics added`),300);}
   diff="All";
-  document.documentElement.style.setProperty("--accent",M.accent); document.documentElement.style.setProperty("--accent-rgb",M.rgb);
-  $("#title").textContent=M.title; $("#subtitle").textContent=M.sub; document.title=M.title+" Roulette";
+  showMode(M); $("#subtitle").textContent=M.sub; document.title=M.title+" Roulette";
   document.querySelectorAll("#modes button").forEach(b=>b.classList.toggle("on",b.dataset.m===m)); setPicker(false);
   $("#after").classList.remove("show"); lastTopic=null; $("#spinBtn").textContent="Spin"; $("#slot").classList.remove("locked");
   $("#timerBtn").style.display = M.timers.length?"":"none";
   renderFilters(); renderDay(); renderHistory(); buildReel(0);
+}
+function showMode(M){
+  document.documentElement.style.setProperty("--accent",M.accent); document.documentElement.style.setProperty("--accent-rgb",M.rgb);
+  $("#title").textContent=M.title; $("#modeIcon").textContent=M.icon;
+}
+/* 🎲: flick through the modes, slowing down, and land on a random other one */
+function spinMode(){
+  if(spinning)return;
+  spinning=true;spinBtn.disabled=true;setPicker(false);$("#diceBtn").classList.add("rolling");
+  if(sound)ac().resume&&ac().resume();
+  const n=ORDER.length,from=ORDER.indexOf(mode),others=ORDER.filter(m=>m!==mode),pick=others[Math.random()*others.length|0];
+  const total=2*n+(ORDER.indexOf(pick)-from+n)%n;
+  let k=0;
+  (function step(){
+    k++;showMode(MODES[ORDER[(from+k)%n]]);tick(1+k/total*.4);
+    if(k<total)return setTimeout(step,50+320*Math.pow(k/total,3));
+    spinning=false;spinBtn.disabled=false;$("#diceBtn").classList.remove("rolling");
+    loadMode(pick);ding();toast(`${MODES[pick].label} it is — now spin for a topic`);
+  })();
 }
 const tags=()=>MODES[mode].tags||[];
 function renderFilters(){
@@ -506,6 +531,7 @@ ORDER.forEach((m,i)=>{const b=document.createElement("button");b.dataset.m=m;b.s
 const picker=$("#picker"),modeBtn=$("#modeBtn");
 function setPicker(o){picker.classList.toggle("open",o);modeBtn.setAttribute("aria-expanded",o);}
 modeBtn.onclick=()=>setPicker(!picker.classList.contains("open"));
+$("#diceBtn").onclick=spinMode;
 document.addEventListener("click",e=>{if(!picker.contains(e.target))setPicker(false);});
 addEventListener("keydown",e=>{
   if(picker.classList.contains("open")&&e.key==="Escape"){setPicker(false);modeBtn.focus();return;}
@@ -516,6 +542,7 @@ addEventListener("keydown",e=>{
   else if(e.key==="Enter"){e.preventDefault();openTimer();}
   else if(k==="f")toggleFS();
   else if(k==="r")toggleRec();
+  else if(k==="m")spinMode();
   else if(k==="d")mark("ok");
   else if(k==="s")mark("no");
   else if(/^[1-7]$/.test(e.key)&&!spinning)loadMode(ORDER[+e.key-1]);
